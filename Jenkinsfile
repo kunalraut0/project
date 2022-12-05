@@ -1,46 +1,28 @@
 pipeline {
-agent {
-label {
-		label "built-in"
-		customWorkspace "/data/project-myapp"
-		
-		}
-		}
-		
-	stages {
-		
-		stage ('CLEAN_OLD_M2') {
-			
-			steps {
-				sh "rm -rf /home/saccount/.m2/repository"
-				
-			}
-			
-		}
-	
-		stage ('MAVEN_BUILD') {
-		
-			steps {
-						
-						sh "mvn clean package"
-			
-			}
-			
-		
-		}
-		
-		stage ('COPY_WAR_TO_Server'){
-		
-				steps {
-						
-						sh "scp -r target/LoginWebApp.war saccount@10.0.2.51:/data/project/wars"
-
-						}
-				
-				}
-	
-	
-	
-	}
-		
-}
+    agent any 
+    stages {
+        stage('pull') { 
+            steps {
+                git 'https://github.com/kunalraut0/project.git'
+            }
+        }
+        
+        stage('build') { 
+            steps {
+               sh 'mvn clean install'
+            }
+        } 
+        
+        stage('test') { 
+            steps {
+                echo 'test successful'
+            }
+        }
+        
+        stage('deploy') { 
+            steps {
+               deploy adapters: [tomcat9(credentialsId: '24858404-37d8-43d0-8593-4a2a2461eef6', path: '', url: 'http://3.110.174.84:8081/')], contextPath: '/', war: '**/*.war'
+            }
+        } 
+    }
+}    
